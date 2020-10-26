@@ -1,0 +1,120 @@
+---
+title: 'MATH2270/MATH2237 Data Visualisation.'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Interactive Storytelling through dashboard.
+
+• Tarun.S.Sarode (s3700754)
+
+## Story URL
+
+- Klasen, S., 2018. Human Development Indices And Indicators: A Critical Evaluation. [ebook] New York: UNDP Human Development Report Office. Available at: <http://hdr.undp.org/sites/default/files/klasen_final.pdf>.
+
+
+## Data Source
+
+- Hdr.undp.org. n.d. Human Development Data (1990-2018) | Human Development Reports. [online] Available at: <http://hdr.undp.org/en/data>. 
+
+## Visualisation URL
+
+- https://tarun-s-sarode.shinyapps.io/HDI-dashboard/
+
+
+## Code 
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(mgcv)
+library(readr)
+library(shiny)
+library(plotly)
+library(rgeos)
+library(maptools)
+library(ggmap)
+library(broom)
+library(dplyr)
+library(ggplot2)
+library(maps)
+library(mapdata)
+library(gdata)
+library(rgdal)
+library(ggthemes)
+library(scales)
+library(ggrepel)
+library(reshape)
+
+# reading the data
+hdiiii <- read.csv("hdi.csv")
+
+# selecting only the columns required for the analysis.
+hdiii<-hdiiii[,-c(1,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56)]
+
+# renaming the column names
+colnames(hdiii)<-c('Country','1990','1991','1992','1993','1994',
+                   '1995','1996','1997','1998','1999',
+                   '2000','2001','2002','2003','2004',
+                   '2005','2006','2007','2008','2009',
+                   '2010','2011','2012','2013','2014',
+                   '2015','2016','2017')
+
+# using the melt function to make format the data for using the ggplot library.
+mm<- melt.data.frame(hdiii,id='Country')
+```
+
+
+Inputs {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+
+
+ selectizeInput("xx", label= "Select Country Name(s) of Interest",
+choices = unique(mm$Country), multiple = T, selected = mm$Country,
+options = list(maxItems = 4))
+
+
+```
+__About HDI__
+
+__What is Human Development Index?__
+
+
+The Human Development Index (HDI) is a composite statistic (index) that measures key dimensions of human development, which are:
+      
+- Life Expectancy(a long and healthy life)
+- Literacy Rate(being knowledgeable)
+- Per Capital Income(a decent standard of living)
+
+__Publication__
+
+Since the drastically changed landscape of development,Select a country to see the Human development Index (HDI) of the Countries across years from 1990 to 2017.
+     
+ [See Paper Here](http://hdr.undp.org/sites/default/files/klasen_final.pdf)
+
+__Data__
+
+  [Download  HDI csv Data](http://hdr.undp.org/en/data)
+
+
+
+Outputs
+-----------------------------------------------------------------------
+### Human Development Index 
+
+```{r}
+
+dataset1 <- reactive({ mm%>%filter(Country==input$xx)})
+
+renderPlotly({
+ ll<-ggplot(dataset1(),aes_string(x="variable" , y ='value' ,group='Country',color='Country' ))+
+   geom_line()+ylim(min=0,max=1)+xlab('Years')+ylab('HDI Score')
+   k<-ggplotly(ll)
+   k
+})
+
+```
+
